@@ -3,7 +3,20 @@ const jwt = require('jsonwebtoken');
 let books = require("./booksdb.js");
 const regd_users = express.Router();
 
-let users = [];
+let users = [
+    {
+    username: "user1",
+    password: "password1",
+    },
+    {
+    username: "user2",
+    password: "password2",
+    },
+    {
+    username: "user3",
+    password: "password3",
+    },
+];
 
 const isValid = (username)=>{ //returns boolean
 //write code to check is the username is valid
@@ -47,6 +60,7 @@ regd_users.post("/login", (req,res) => {
     req.session.authorization = {
         accesssToken,username
     }
+    req.session.username = username
     return res.status(200).send("User successfully logged in");
   } else {
     return res.status(404).send("Invalid Login.");
@@ -59,13 +73,24 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   //Write your code here
   const { isbn } = req.params;
   const { review } = req.body;
-  const { username } = req.session.authorization['username'];
+  const username = req.session.username;
 
   if (!review) {
     return res.status(400).json({ message: "Invalid credentials" });
   }
+
   const book = books[isbn];
+  let existingReview = book.reviews.find(r => r.username === username);
+  if(existingReview) {
+    existingReview.review = review;
+    return res.status(200).json({ message: `Review updated for ISBN ${isbn} by ${username}`, book });
+  }
   if(review){
+    book.reviews.push({ username, review });
+    //book['reviews'][username] = review;
+    books[isbn] = book;
+  }
+  if(username){
     book['reviews'][username] = review;
     books[isbn] = book;
   }
@@ -75,7 +100,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     return res.status(404).json({ message: "Book not found" });
   }
   //books[isbn].push({"reviews": username, review });
-  return res.status(200).json({ message: "Review added", book });
+  return res.status(200).json({ message: `Review added for ISBN ${isbn} by ${username}`, book });
   /*const isbn = req.params.isbn;
 
     let filtered_book = books[isbn];
