@@ -161,7 +161,8 @@ public_users.get('/review/:isbn',function (req, res) {
   const review = books[isbn]["reviews"];
   const name = books[isbn]["title"];
 
-  res.send(`The review for the book ${name} is "${review}".`);
+  //res.send(`The review for the book ${name} is "${review}".`);
+  res.json({title: name, reviews: review})
   //return res.status(300).json({message: "Yet to be implemented"});
 });
 
